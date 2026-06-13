@@ -69,3 +69,14 @@ audits, static review, authorization tests, or OWASP ZAP.
 - City-level location is not retained; country is the maximum precision.
 - Visits older than 180 days are removed opportunistically during analytics
   requests.
+
+### Module 5: Link Controls And Public Statistics
+
+- Independent security-agent review completed.
+- Owner-scoped updates use an explicit strict allowlist and reject mass
+  assignment fields.
+- Public reports expose click totals and daily aggregates only; visitor
+  categories and recent visits remain private.
+- Public daily trends are aggregated in PostgreSQL, cached briefly, rate
+  limited, and disabled when the link expires or its owner turns sharing off.
+- QR codes are generated locally from the canonical short URL.

@@ -20,11 +20,40 @@ const listLimiter = rateLimit({
   standardHeaders: "draft-7",
   legacyHeaders: false,
 });
-
-const createLinkSchema = z.object({
-  destinationUrl: destinationSchema,
-  customAlias: z.union([aliasSchema, z.literal("")]).optional(),
+const mutationLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 60,
+  keyGenerator: (req) => req.user.id,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
 });
+
+const expirySchema = z
+  .union([z.string().datetime({ offset: true }), z.literal(""), z.null()])
+  .refine(
+    (value) => !value || new Date(value).getTime() > Date.now() + 30_000,
+    "Expiry must be in the future.",
+  );
+
+const createLinkSchema = z
+  .object({
+    destinationUrl: destinationSchema,
+    customAlias: z.union([aliasSchema, z.literal("")]).optional(),
+    expiresAt: expirySchema.optional(),
+    publicStats: z.boolean().optional().default(false),
+  })
+  .strict();
+
+const updateLinkSchema = z
+  .object({
+    destinationUrl: destinationSchema.optional(),
+    expiresAt: expirySchema.optional(),
+    publicStats: z.boolean().optional(),
+  })
+  .strict()
+  .refine((value) => Object.keys(value).length > 0, {
+    message: "At least one field must be updated.",
+  });
 
 const listLinksSchema = z.object({
   page: z.coerce.number().int().min(1).max(1000).default(1),
@@ -33,13 +62,13 @@ const listLinksSchema = z.object({
   sort: z.enum(["newest", "oldest", "clicks"]).default("newest"),
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", mutationLimiter, async (req, res, next) => {
   try {
     const input = createLinkSchema.parse(req.body);
     const requestedAlias = input.customAlias || null;
     const link = requestedAlias
-      ? await createWithCode(input.destinationUrl, requestedAlias, req.user.id)
-      : await createGenerated(input.destinationUrl, req.user.id);
+      ? await createWithCode(input, requestedAlias, req.user.id)
+      : await createGenerated(input, req.user.id);
 
     return res.status(201).json({ data: { link: serializeLink(link, req) } });
   } catch (error) {
@@ -138,7 +167,36 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-router.delete("/:id", async (req, res, next) => {
+router.patch("/:id", mutationLimiter, async (req, res, next) => {
+  try {
+    const input = updateLinkSchema.parse(req.body);
+    const data = {
+      ...(input.destinationUrl !== undefined
+        ? { destinationUrl: input.destinationUrl }
+        : {}),
+      ...(input.expiresAt !== undefined
+        ? { expiresAt: input.expiresAt ? new Date(input.expiresAt) : null }
+        : {}),
+      ...(input.publicStats !== undefined
+        ? { publicStats: input.publicStats }
+        : {}),
+    };
+    const result = await prisma.link.updateMany({
+      where: { id: req.params.id, userId: req.user.id },
+      data,
+    });
+    if (result.count === 0) return linkNotFound(req, res);
+    const link = await prisma.link.findFirst({
+      where: { id: req.params.id, userId: req.user.id },
+    });
+    return res.json({ data: { link: serializeLink(link, req) } });
+  } catch (error) {
+    if (error instanceof z.ZodError) return validationError(error, req, res);
+    return next(error);
+  }
+});
+
+router.delete("/:id", mutationLimiter, async (req, res, next) => {
   try {
     const result = await prisma.link.deleteMany({
       where: { id: req.params.id, userId: req.user.id },
@@ -150,10 +208,10 @@ router.delete("/:id", async (req, res, next) => {
   }
 });
 
-async function createGenerated(destinationUrl, userId) {
+async function createGenerated(input, userId) {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     try {
-      return await createWithCode(destinationUrl, generateShortCode(), userId);
+      return await createWithCode(input, generateShortCode(), userId);
     } catch (error) {
       if (!isUniqueConstraintError(error)) throw error;
     }
@@ -164,9 +222,15 @@ async function createGenerated(destinationUrl, userId) {
   throw error;
 }
 
-function createWithCode(destinationUrl, shortCode, userId) {
+function createWithCode(input, shortCode, userId) {
   return prisma.link.create({
-    data: { destinationUrl, shortCode, userId },
+    data: {
+      destinationUrl: input.destinationUrl,
+      shortCode,
+      userId,
+      expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
+      publicStats: input.publicStats,
+    },
   });
 }
 

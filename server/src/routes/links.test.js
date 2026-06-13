@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const database = vi.hoisted(() => ({
   $transaction: vi.fn(),
+  $queryRaw: vi.fn(),
   link: {
     count: vi.fn(),
     create: vi.fn(),
@@ -11,6 +12,7 @@ const database = vi.hoisted(() => ({
     findMany: vi.fn(),
     findUnique: vi.fn(),
     update: vi.fn(),
+    updateMany: vi.fn(),
   },
   session: {
     delete: vi.fn(),
@@ -81,6 +83,8 @@ describe("links API", () => {
     expect(database.link.create).toHaveBeenCalledWith({
       data: {
         destinationUrl: "https://example.com/campaign",
+        expiresAt: null,
+        publicStats: false,
         shortCode: "launch-26",
         userId: "owner_1",
       },
@@ -119,6 +123,51 @@ describe("links API", () => {
     expect(database.link.deleteMany).toHaveBeenCalledWith({
       where: { id: "another-users-link", userId: "owner_1" },
     });
+  });
+
+  it("scopes destination updates to the authenticated owner", async () => {
+    database.link.updateMany.mockResolvedValue({ count: 0 });
+
+    const response = await authenticated(
+      request(createApp()).patch("/api/links/another-users-link"),
+    ).send({ destinationUrl: "https://example.com/new" });
+
+    expect(response.status).toBe(404);
+    expect(database.link.updateMany).toHaveBeenCalledWith({
+      where: { id: "another-users-link", userId: "owner_1" },
+      data: { destinationUrl: "https://example.com/new" },
+    });
+  });
+
+  it("keeps private public statistics indistinguishable from missing links", async () => {
+    database.link.findFirst.mockResolvedValue(null);
+
+    const response = await request(createApp()).get(
+      "/api/public/stats/private-code",
+    );
+
+    expect(response.status).toBe(404);
+    expect(response.body.error.code).toBe("PUBLIC_STATS_NOT_FOUND");
+    expect(database.link.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          shortCode: "private-code",
+          publicStats: true,
+        }),
+      }),
+    );
+  });
+
+  it("rejects past expiries and unknown update fields", async () => {
+    const response = await authenticated(
+      request(createApp()).patch("/api/links/link_1"),
+    ).send({
+      expiresAt: "2020-01-01T00:00:00.000Z",
+      clickCount: 999999,
+    });
+
+    expect(response.status).toBe(422);
+    expect(database.link.updateMany).not.toHaveBeenCalled();
   });
 
   it("does not expose another user's analytics", async () => {

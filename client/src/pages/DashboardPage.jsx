@@ -9,6 +9,7 @@ import {
   Search,
   Trash2,
   Activity,
+  Pencil,
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -25,6 +26,7 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("newest");
   const [showCreate, setShowCreate] = useState(false);
+  const [selectedLink, setSelectedLink] = useState(null);
 
   const loadLinks = useCallback(async () => {
     setLoadingLinks(true);
@@ -172,7 +174,12 @@ export default function DashboardPage() {
           ) : (
             <div className="link-list">
               {links.map((link) => (
-                <LinkRow key={link.id} link={link} onDelete={deleteLink} />
+                <LinkRow
+                  key={link.id}
+                  link={link}
+                  onDelete={deleteLink}
+                  onEdit={setSelectedLink}
+                />
               ))}
             </div>
           )}
@@ -185,6 +192,20 @@ export default function DashboardPage() {
           onCreated={(link) => {
             setLinks((current) => [link, ...current]);
             setShowCreate(false);
+          }}
+        />
+      )}
+      {selectedLink && (
+        <LinkToolsDialog
+          link={selectedLink}
+          onClose={() => setSelectedLink(null)}
+          onUpdated={(updatedLink) => {
+            setLinks((current) =>
+              current.map((item) =>
+                item.id === updatedLink.id ? updatedLink : item,
+              ),
+            );
+            setSelectedLink(updatedLink);
           }}
         />
       )}
@@ -201,7 +222,7 @@ function SummaryCard({ label, value }) {
   );
 }
 
-function LinkRow({ link, onDelete }) {
+function LinkRow({ link, onDelete, onEdit }) {
   const [copied, setCopied] = useState(false);
   async function copyLink() {
     await navigator.clipboard.writeText(link.shortUrl);
@@ -230,6 +251,13 @@ function LinkRow({ link, onDelete }) {
         )}
       </div>
       <div className="link-actions">
+        <button
+          aria-label="Edit link and QR code"
+          onClick={() => onEdit(link)}
+          type="button"
+        >
+          <Pencil size={18} />
+        </button>
         <Link
           aria-label="View link analytics"
           className="icon-link"
@@ -253,7 +281,12 @@ function LinkRow({ link, onDelete }) {
 }
 
 function CreateLinkDialog({ onClose, onCreated }) {
-  const [form, setForm] = useState({ destinationUrl: "", customAlias: "" });
+  const [form, setForm] = useState({
+    destinationUrl: "",
+    customAlias: "",
+    expiresAt: "",
+    publicStats: false,
+  });
   const [fieldErrors, setFieldErrors] = useState({});
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -329,6 +362,41 @@ function CreateLinkDialog({ onClose, onCreated }) {
             placeholder="summer-offer"
             value={form.customAlias}
           />
+          <DashboardField
+            hint="Optional. The link returns a 410 page after this time."
+            label="Expiry date"
+            name="expiresAt"
+            onChange={(event) =>
+              setForm((current) => ({
+                ...current,
+                expiresAt: event.target.value
+                  ? new Date(event.target.value).toISOString()
+                  : "",
+              }))
+            }
+            type="datetime-local"
+            value={
+              form.expiresAt
+                ? new Date(form.expiresAt).toISOString().slice(0, 16)
+                : ""
+            }
+          />
+          <label className="toggle-field">
+            <input
+              checked={form.publicStats}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  publicStats: event.target.checked,
+                }))
+              }
+              type="checkbox"
+            />
+            <span>
+              <strong>Public statistics</strong>
+              Allow anyone with the stats URL to view aggregate performance.
+            </span>
+          </label>
           <div className="dialog-actions">
             <button
               className="button button-ghost"
@@ -346,6 +414,158 @@ function CreateLinkDialog({ onClose, onCreated }) {
             </button>
           </div>
         </form>
+      </section>
+    </div>
+  );
+}
+
+function LinkToolsDialog({ link, onClose, onUpdated }) {
+  const [form, setForm] = useState({
+    destinationUrl: link.destinationUrl,
+    expiresAt: link.expiresAt || "",
+    publicStats: link.publicStats,
+  });
+  const [qrDataUrl, setQrDataUrl] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    import("qrcode")
+      .then(({ default: QRCode }) =>
+        QRCode.toDataURL(link.shortUrl, {
+          width: 360,
+          margin: 2,
+          color: { dark: "#5D1C6A", light: "#FFFFFF" },
+        }),
+      )
+      .then(setQrDataUrl)
+      .catch(() => setError("QR preview could not be generated."));
+  }, [link.shortUrl]);
+
+  async function save(event) {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+    try {
+      const data = await apiRequest(`/api/links/${link.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(form),
+      });
+      onUpdated(data.link);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function downloadQr() {
+    const anchor = document.createElement("a");
+    anchor.href = qrDataUrl;
+    anchor.download = `${link.shortCode}-qr.png`;
+    anchor.click();
+  }
+
+  return (
+    <div className="dialog-backdrop" onMouseDown={onClose}>
+      <section
+        aria-labelledby="link-tools-title"
+        aria-modal="true"
+        className="create-dialog tools-dialog"
+        onMouseDown={(event) => event.stopPropagation()}
+        role="dialog"
+      >
+        <header>
+          <div>
+            <p className="section-kicker">Link settings</p>
+            <h2 id="link-tools-title">/{link.shortCode}</h2>
+          </div>
+          <button aria-label="Close dialog" onClick={onClose} type="button">
+            <X size={20} />
+          </button>
+        </header>
+        {error && (
+          <div className="form-alert" role="alert">
+            {error}
+          </div>
+        )}
+        <div className="tools-layout">
+          <form className="auth-form" onSubmit={save}>
+            <DashboardField
+              label="Destination URL"
+              name="editDestination"
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  destinationUrl: event.target.value,
+                }))
+              }
+              type="url"
+              value={form.destinationUrl}
+            />
+            <DashboardField
+              hint="Leave empty for a permanent link."
+              label="Expiry date"
+              name="editExpiry"
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  expiresAt: event.target.value
+                    ? new Date(event.target.value).toISOString()
+                    : "",
+                }))
+              }
+              type="datetime-local"
+              value={
+                form.expiresAt
+                  ? new Date(form.expiresAt).toISOString().slice(0, 16)
+                  : ""
+              }
+            />
+            <label className="toggle-field">
+              <input
+                checked={form.publicStats}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    publicStats: event.target.checked,
+                  }))
+                }
+                type="checkbox"
+              />
+              <span>
+                <strong>Public statistics</strong>
+                Share aggregate stats at `/stats/{link.shortCode}`.
+              </span>
+            </label>
+            <button className="button button-primary" disabled={saving}>
+              {saving ? "Saving..." : "Save changes"}
+            </button>
+          </form>
+          <div className="qr-panel">
+            {qrDataUrl ? (
+              <img alt={`QR code for ${link.shortUrl}`} src={qrDataUrl} />
+            ) : (
+              <div className="qr-placeholder">Generating QR...</div>
+            )}
+            <button
+              className="button button-accent"
+              disabled={!qrDataUrl}
+              onClick={downloadQr}
+              type="button"
+            >
+              Download PNG
+            </button>
+            {link.publicStats && (
+              <Link
+                className="public-stats-link"
+                to={`/stats/${link.shortCode}`}
+              >
+                View public stats <ExternalLink size={14} />
+              </Link>
+            )}
+          </div>
+        </div>
       </section>
     </div>
   );

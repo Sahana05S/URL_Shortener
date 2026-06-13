@@ -12,6 +12,7 @@ import AuthPage from "./pages/AuthPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 
 const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage.jsx"));
+const PublicStatsPage = lazy(() => import("./pages/PublicStatsPage.jsx"));
 
 const features = [
   {
@@ -45,6 +46,18 @@ export default function App() {
             fallback={<div className="page-loader">Loading analytics...</div>}
           >
             <AnalyticsPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/stats/:shortCode"
+        element={
+          <Suspense
+            fallback={
+              <div className="page-loader">Loading public stats...</div>
+            }
+          >
+            <PublicStatsPage />
           </Suspense>
         }
       />

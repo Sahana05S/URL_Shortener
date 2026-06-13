@@ -1096,6 +1096,114 @@ footer p:last-child {
   margin-top: 8px;
 }
 
+.toggle-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.toggle-field input {
+  width: 17px;
+  height: 17px;
+  margin-top: 2px;
+  accent-color: var(--pink);
+}
+
+.toggle-field span {
+  display: grid;
+}
+
+.toggle-field strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.tools-dialog {
+  width: min(850px, 100%);
+}
+
+.tools-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 34px;
+}
+
+.qr-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 15px;
+  background: var(--cream);
+}
+
+.qr-panel img {
+  width: 100%;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.qr-placeholder {
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  background: #ffffff;
+}
+
+.public-stats-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: var(--purple);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.public-stats-page {
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+.public-stats-nav {
+  width: min(1120px, calc(100% - 40px));
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 auto;
+}
+
+.public-stats-main {
+  width: min(1000px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 70px 0 100px;
+}
+
+.public-stats-main > h1 {
+  margin: 8px 0 12px;
+  color: var(--purple);
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(40px, 7vw, 68px);
+  letter-spacing: -0.05em;
+}
+
+.public-stats-intro {
+  max-width: 650px;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.public-chart {
+  margin-top: 20px;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -1161,6 +1269,10 @@ footer p:last-child {
 
   .visit-row {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .tools-layout {
+    grid-template-columns: 1fr;
   }
 
   .links-toolbar,
