@@ -13,6 +13,7 @@ import DashboardPage from "./pages/DashboardPage.jsx";
 
 const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage.jsx"));
 const PublicStatsPage = lazy(() => import("./pages/PublicStatsPage.jsx"));
+const BulkPage = lazy(() => import("./pages/BulkPage.jsx"));
 
 const features = [
   {
@@ -58,6 +59,16 @@ export default function App() {
             }
           >
             <PublicStatsPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/dashboard/bulk"
+        element={
+          <Suspense
+            fallback={<div className="page-loader">Loading importer...</div>}
+          >
+            <BulkPage />
           </Suspense>
         }
       />

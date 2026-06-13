@@ -46,6 +46,15 @@ CREATE TABLE "Visit" (
     CONSTRAINT "Visit_pkey" PRIMARY KEY ("id")
 );
 
+CREATE TABLE "BulkImportRow" (
+    "id" TEXT NOT NULL,
+    "idempotencyKey" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "linkId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "BulkImportRow_pkey" PRIMARY KEY ("id")
+);
+
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX "Session_tokenHash_key" ON "Session"("tokenHash");
 CREATE INDEX "Session_userId_idx" ON "Session"("userId");
@@ -53,6 +62,9 @@ CREATE INDEX "Session_expiresAt_idx" ON "Session"("expiresAt");
 CREATE UNIQUE INDEX "Link_shortCode_key" ON "Link"("shortCode");
 CREATE INDEX "Link_userId_createdAt_idx" ON "Link"("userId", "createdAt" DESC);
 CREATE INDEX "Visit_linkId_visitedAt_idx" ON "Visit"("linkId", "visitedAt" DESC);
+CREATE UNIQUE INDEX "BulkImportRow_idempotencyKey_key" ON "BulkImportRow"("idempotencyKey");
+CREATE UNIQUE INDEX "BulkImportRow_linkId_key" ON "BulkImportRow"("linkId");
+CREATE INDEX "BulkImportRow_userId_createdAt_idx" ON "BulkImportRow"("userId", "createdAt" DESC);
 
 ALTER TABLE "Session"
 ADD CONSTRAINT "Session_userId_fkey"
@@ -66,5 +78,15 @@ ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE "Visit"
 ADD CONSTRAINT "Visit_linkId_fkey"
+FOREIGN KEY ("linkId") REFERENCES "Link"("id")
+ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "BulkImportRow"
+ADD CONSTRAINT "BulkImportRow_userId_fkey"
+FOREIGN KEY ("userId") REFERENCES "User"("id")
+ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "BulkImportRow"
+ADD CONSTRAINT "BulkImportRow_linkId_fkey"
 FOREIGN KEY ("linkId") REFERENCES "Link"("id")
 ON DELETE CASCADE ON UPDATE CASCADE;

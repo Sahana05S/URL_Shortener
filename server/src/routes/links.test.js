@@ -4,6 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const database = vi.hoisted(() => ({
   $transaction: vi.fn(),
   $queryRaw: vi.fn(),
+  bulkImportRow: {
+    create: vi.fn(),
+    findUnique: vi.fn(),
+  },
   link: {
     count: vi.fn(),
     create: vi.fn(),
@@ -37,6 +41,13 @@ const { createApp } = await import("../app.js");
 describe("links API", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    database.link.findMany.mockResolvedValue([]);
+    database.bulkImportRow.findUnique.mockResolvedValue(null);
+    database.bulkImportRow.create.mockResolvedValue({ id: "import_row_1" });
+    database.$transaction.mockImplementation((operations) => {
+      if (typeof operations === "function") return operations(database);
+      return Promise.resolve([]);
+    });
     database.session.findUnique.mockResolvedValue({
       id: "session_1",
       expiresAt: new Date(Date.now() + 60_000),
@@ -168,6 +179,87 @@ describe("links API", () => {
 
     expect(response.status).toBe(422);
     expect(database.link.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("previews CSV rows without writing to the database", async () => {
+    const csv = [
+      "original_url,custom_alias,expires_at,public_stats",
+      "https://example.com/one,launch-one,,true",
+      "javascript:alert(1),bad-row,,false",
+    ].join("\n");
+
+    const response = await authenticated(
+      request(createApp())
+        .post("/api/links/bulk")
+        .field("mode", "preview")
+        .field("importId", "26f8f4ec-2c96-4c84-ae3b-f27cb81a4dd9")
+        .attach("file", Buffer.from(csv), {
+          filename: "links.csv",
+          contentType: "text/csv",
+        }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.summary).toMatchObject({
+      total: 2,
+      valid: 1,
+      invalid: 1,
+    });
+    expect(database.link.create).not.toHaveBeenCalled();
+  });
+
+  it("processes valid CSV rows and reports alias collisions", async () => {
+    const csv = [
+      "original_url,custom_alias,expires_at,public_stats",
+      "https://example.com/one,launch-one,,true",
+      "https://example.com/two,launch-two,,false",
+    ].join("\n");
+    database.link.create
+      .mockResolvedValueOnce({ id: "link_1", shortCode: "launch-one" })
+      .mockRejectedValueOnce({ code: "P2002" });
+
+    const response = await authenticated(
+      request(createApp())
+        .post("/api/links/bulk")
+        .field("mode", "process")
+        .field("importId", "26f8f4ec-2c96-4c84-ae3b-f27cb81a4dd9")
+        .attach("file", Buffer.from(csv), {
+          filename: "links.csv",
+          contentType: "text/csv",
+        }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.summary.created).toBe(1);
+    expect(response.body.data.summary.failed).toBe(1);
+    expect(response.body.data.rows[1].errors).toContain(
+      "Custom alias is already in use.",
+    );
+  });
+
+  it("returns the existing link when a processed import row is retried", async () => {
+    const csv = [
+      "original_url,custom_alias,expires_at,public_stats",
+      "https://example.com/one,launch-one,,false",
+    ].join("\n");
+    database.bulkImportRow.findUnique.mockResolvedValue({
+      link: { id: "link_1", shortCode: "launch-one" },
+    });
+
+    const response = await authenticated(
+      request(createApp())
+        .post("/api/links/bulk")
+        .field("mode", "process")
+        .field("importId", "26f8f4ec-2c96-4c84-ae3b-f27cb81a4dd9")
+        .attach("file", Buffer.from(csv), {
+          filename: "links.csv",
+          contentType: "text/csv",
+        }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.rows[0].shortUrl).toMatch(/\/launch-one$/);
+    expect(database.link.create).not.toHaveBeenCalled();
   });
 
   it("does not expose another user's analytics", async () => {

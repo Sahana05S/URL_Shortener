@@ -72,6 +72,9 @@ export default function DashboardPage() {
           <a href="#links">
             <Link2 size={19} /> Links
           </a>
+          <Link to="/dashboard/bulk">
+            <Plus size={19} /> Bulk import
+          </Link>
         </nav>
         <button className="sidebar-logout" onClick={logout} type="button">
           <LogOut size={18} /> Log out

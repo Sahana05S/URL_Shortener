@@ -80,3 +80,15 @@ audits, static review, authorization tests, or OWASP ZAP.
 - Public daily trends are aggregated in PostgreSQL, cached briefly, rate
   limited, and disabled when the link expires or its owner turns sharing off.
 - QR codes are generated locally from the canonical short URL.
+
+### Module 6: CSV Bulk Import
+
+- Independent security-agent review completed.
+- Multipart files are limited to 1 MB and one file; parsing stops at 101 rows
+  with a per-record size cap.
+- Every row is schema validated and ownership fields are supplied only by the
+  server.
+- Process retries use a client import identifier and database-backed row
+  idempotency keys so committed rows are not duplicated after interruption.
+- Downloaded results neutralize spreadsheet formulas after leading whitespace,
+  and detailed parser errors are not returned to clients.

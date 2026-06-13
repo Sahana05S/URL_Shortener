@@ -11,6 +11,7 @@ import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
 import { requireTrustedOrigin } from "./middleware/origin.js";
 import authRouter from "./routes/auth.js";
 import analyticsRouter from "./routes/analytics.js";
+import bulkRouter from "./routes/bulk.js";
 import linksRouter from "./routes/links.js";
 import publicStatsRouter from "./routes/public-stats.js";
 import redirectRouter from "./routes/redirect.js";
@@ -57,6 +58,7 @@ export function createApp() {
   app.use("/api/auth", authRouter);
   app.use("/api/links", linksRouter);
   app.use("/api/links", analyticsRouter);
+  app.use("/api/links/bulk", bulkRouter);
   app.use("/api/public", publicStatsRouter);
 
   if (env.NODE_ENV === "production") {

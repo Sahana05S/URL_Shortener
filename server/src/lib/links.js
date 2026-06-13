@@ -26,7 +26,8 @@ export const aliasSchema = z
   )
   .refine((value) => !reservedCodes.has(value.toLowerCase()), {
     message: "This alias is reserved.",
-  });
+  })
+  .transform((value) => value.toLowerCase());
 
 export const destinationSchema = z
   .string()
