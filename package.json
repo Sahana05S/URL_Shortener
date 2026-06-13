@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "dev": "node scripts/dev.js",
+    "postinstall": "npm run db:generate",
     "build": "npm run build -w client",
     "start": "npm run start -w server",
     "lint": "eslint .",
