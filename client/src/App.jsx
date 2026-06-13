@@ -5,8 +5,8 @@ import {
   QrCode,
   ShieldCheck,
 } from "lucide-react";
-import { lazy, Suspense } from "react";
-import { Link, Route, Routes } from "react-router-dom";
+import { lazy, Suspense, useState } from "react";
+import { Link, Route, Routes, useNavigate } from "react-router-dom";
 import Brand from "./components/Brand.jsx";
 import AuthPage from "./pages/AuthPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
@@ -50,6 +50,7 @@ export default function App() {
           </Suspense>
         }
       />
+      <Route path="*" element={<NotFoundPage />} />
       <Route
         path="/stats/:shortCode"
         element={
@@ -77,6 +78,16 @@ export default function App() {
 }
 
 function LandingPage() {
+  const [destination, setDestination] = useState("");
+  const navigate = useNavigate();
+
+  function startShortening(event) {
+    event.preventDefault();
+    if (!event.currentTarget.reportValidity()) return;
+    sessionStorage.setItem("pendingDestination", destination);
+    navigate("/signup");
+  }
+
   return (
     <div className="site-shell">
       <header className="nav">
@@ -109,17 +120,17 @@ function LandingPage() {
             Create branded short links, share them anywhere, and understand
             every click with a beautifully simple analytics workspace.
           </p>
-          <form
-            className="shortener-card"
-            onSubmit={(event) => event.preventDefault()}
-          >
+          <form className="shortener-card" onSubmit={startShortening}>
             <label htmlFor="destination">Paste a long URL</label>
             <div className="shortener-row">
               <input
                 id="destination"
                 name="destination"
                 placeholder="https://example.com/your-very-long-link"
+                required
                 type="url"
+                value={destination}
+                onChange={(event) => setDestination(event.target.value)}
               />
               <button className="button button-accent" type="submit">
                 Shorten link <ArrowRight size={18} />
@@ -173,5 +184,19 @@ function LandingPage() {
         <p>&copy; 2026 Linkora</p>
       </footer>
     </div>
+  );
+}
+
+function NotFoundPage() {
+  return (
+    <main className="not-found-page">
+      <Brand />
+      <p className="section-kicker">404 · Lost link</p>
+      <h1>This page took a wrong turn.</h1>
+      <p>The address may be incorrect, or the page may have moved.</p>
+      <Link className="button button-primary" to="/">
+        Return home
+      </Link>
+    </main>
   );
 }

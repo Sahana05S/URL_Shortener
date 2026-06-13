@@ -577,6 +577,10 @@ footer p:last-child {
   font-weight: 700;
 }
 
+.mobile-dashboard-header {
+  display: none;
+}
+
 .dashboard-shell {
   min-height: 100vh;
   display: grid;
@@ -1353,6 +1357,41 @@ footer p:last-child {
   background: #eaf8f2;
 }
 
+.not-found-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      rgba(255, 176, 144, 0.22),
+      transparent 28%
+    ),
+    #ffffff;
+  text-align: center;
+}
+
+.not-found-page .brand {
+  margin-bottom: 70px;
+}
+
+.not-found-page h1 {
+  max-width: 680px;
+  margin: 8px 0 14px;
+  color: var(--purple);
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(46px, 8vw, 76px);
+  letter-spacing: -0.055em;
+}
+
+.not-found-page > p:not(.section-kicker) {
+  margin: 0 0 28px;
+  color: var(--muted);
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -1388,6 +1427,31 @@ footer p:last-child {
 
   .dashboard-main {
     padding: 28px 20px;
+  }
+
+  .mobile-dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 34px;
+  }
+
+  .mobile-dashboard-header > div {
+    display: flex;
+    gap: 6px;
+  }
+
+  .mobile-dashboard-header button,
+  .mobile-dashboard-header > a:not(.brand),
+  .mobile-dashboard-header > div a {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 10px;
+    color: var(--purple);
+    background: var(--cream);
   }
 
   .dashboard-header {

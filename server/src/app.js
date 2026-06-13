@@ -64,7 +64,15 @@ export function createApp() {
   if (env.NODE_ENV === "production") {
     app.use(express.static(clientDist, { index: false }));
     app.get(
-      ["/", "/login", "/signup", "/dashboard", "/stats/:shortCode"],
+      [
+        "/",
+        "/login",
+        "/signup",
+        "/dashboard",
+        "/dashboard/bulk",
+        "/dashboard/links/:id",
+        "/stats/:shortCode",
+      ],
       (_req, res) => res.sendFile(path.join(clientDist, "index.html")),
     );
   }

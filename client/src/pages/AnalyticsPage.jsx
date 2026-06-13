@@ -58,6 +58,12 @@ export default function AnalyticsPage() {
         </nav>
       </aside>
       <main className="dashboard-main analytics-main">
+        <div className="mobile-dashboard-header">
+          <Brand />
+          <Link aria-label="Back to dashboard" to="/dashboard">
+            <ArrowLeft size={19} />
+          </Link>
+        </div>
         <Link className="back-link analytics-back" to="/dashboard">
           <ArrowLeft size={17} /> Back to links
         </Link>

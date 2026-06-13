@@ -57,6 +57,12 @@ export default function BulkPage() {
         </nav>
       </aside>
       <main className="dashboard-main bulk-main">
+        <div className="mobile-dashboard-header">
+          <Brand />
+          <Link aria-label="Back to dashboard" to="/dashboard">
+            <ArrowLeft size={19} />
+          </Link>
+        </div>
         <p className="section-kicker">Bulk shortening</p>
         <h1>Turn a CSV into short links.</h1>
         <p className="bulk-intro">

@@ -25,7 +25,10 @@ export default function DashboardPage() {
   const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("newest");
-  const [showCreate, setShowCreate] = useState(false);
+  const [pendingDestination] = useState(
+    () => sessionStorage.getItem("pendingDestination") || "",
+  );
+  const [showCreate, setShowCreate] = useState(Boolean(pendingDestination));
   const [selectedLink, setSelectedLink] = useState(null);
 
   const loadLinks = useCallback(async () => {
@@ -81,6 +84,7 @@ export default function DashboardPage() {
         </button>
       </aside>
       <main className="dashboard-main">
+        <MobileDashboardHeader onLogout={logout} />
         <header className="dashboard-header">
           <div>
             <p className="section-kicker">Overview</p>
@@ -191,8 +195,10 @@ export default function DashboardPage() {
 
       {showCreate && (
         <CreateLinkDialog
+          initialDestination={pendingDestination}
           onClose={() => setShowCreate(false)}
           onCreated={(link) => {
+            sessionStorage.removeItem("pendingDestination");
             setLinks((current) => [link, ...current]);
             setShowCreate(false);
           }}
@@ -283,9 +289,9 @@ function LinkRow({ link, onDelete, onEdit }) {
   );
 }
 
-function CreateLinkDialog({ onClose, onCreated }) {
+function CreateLinkDialog({ initialDestination = "", onClose, onCreated }) {
   const [form, setForm] = useState({
-    destinationUrl: "",
+    destinationUrl: initialDestination,
     customAlias: "",
     expiresAt: "",
     publicStats: false,
@@ -418,6 +424,22 @@ function CreateLinkDialog({ onClose, onCreated }) {
           </div>
         </form>
       </section>
+    </div>
+  );
+}
+
+function MobileDashboardHeader({ onLogout }) {
+  return (
+    <div className="mobile-dashboard-header">
+      <Brand />
+      <div>
+        <Link aria-label="Bulk import" to="/dashboard/bulk">
+          <Plus size={19} />
+        </Link>
+        <button aria-label="Log out" onClick={onLogout} type="button">
+          <LogOut size={19} />
+        </button>
+      </div>
     </div>
   );
 }
