@@ -1,0 +1,4 @@
+﻿
+> linkora-url-shortener@1.0.0 lint
+> eslint .
+
