@@ -28,6 +28,17 @@ export default [
     },
   },
   {
+    files: ["tests/e2e/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      globals: {
+        ...globals.node,
+        navigator: "readonly",
+      },
+      sourceType: "module",
+    },
+  },
+  {
     files: ["server/**/*.js", "scripts/**/*.js", "*.config.js"],
     languageOptions: {
       ecmaVersion: "latest",

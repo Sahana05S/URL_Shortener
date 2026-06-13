@@ -35,6 +35,11 @@ Create `docs/evidence/` and add:
 
 Then replace the README video placeholder with the public Loom or YouTube URL.
 
+Run `npm run evidence:capture` while the client is available at
+`http://127.0.0.1:5173` to regenerate the landing, dashboard, and analytics
+screenshots with deterministic, clearly labeled fixture data. Replace them
+with deployed screenshots before final submission.
+
 ## Safe Log Example
 
 ```text
@@ -45,4 +50,3 @@ GET /demo-link 302 requestId=<redacted>
 
 Never record `.env`, cookies, password hashes, session token hashes, database
 credentials, or raw deployment secrets.
-

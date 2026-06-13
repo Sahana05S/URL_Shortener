@@ -1455,11 +1455,14 @@ footer p:last-child {
   }
 
   .dashboard-header {
-    align-items: flex-start;
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .dashboard-header .button {
+    width: 100%;
     padding: 0 14px;
+    white-space: nowrap;
   }
 
   .summary-grid {

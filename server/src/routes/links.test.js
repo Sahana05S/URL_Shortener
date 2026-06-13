@@ -4,6 +4,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const database = vi.hoisted(() => ({
   $transaction: vi.fn(),
   $queryRaw: vi.fn(),
+  abuseReport: {
+    create: vi.fn(),
+  },
   bulkImportRow: {
     create: vi.fn(),
     findUnique: vi.fn(),
@@ -41,6 +44,7 @@ const { createApp } = await import("../app.js");
 describe("links API", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    database.link.count.mockResolvedValue(0);
     database.link.findMany.mockResolvedValue([]);
     database.bulkImportRow.findUnique.mockResolvedValue(null);
     database.bulkImportRow.create.mockResolvedValue({ id: "import_row_1" });
@@ -72,6 +76,7 @@ describe("links API", () => {
   });
 
   it("creates an owned link with a validated custom alias", async () => {
+    database.link.count.mockResolvedValue(0);
     database.link.create.mockResolvedValue({
       id: "link_1",
       shortCode: "launch-26",
@@ -100,6 +105,21 @@ describe("links API", () => {
         userId: "owner_1",
       },
     });
+  });
+
+  it("blocks link creation after the account quota is reached", async () => {
+    database.link.count.mockResolvedValue(1000);
+
+    const response = await authenticated(
+      request(createApp()).post("/api/links"),
+    ).send({
+      destinationUrl: "https://example.com/campaign",
+      customAlias: "another-link",
+    });
+
+    expect(response.status).toBe(409);
+    expect(response.body.error.code).toBe("LINK_QUOTA_REACHED");
+    expect(database.link.create).not.toHaveBeenCalled();
   });
 
   it("rejects aliases that collide with static application paths", async () => {
@@ -318,6 +338,40 @@ describe("links API", () => {
     expect(response.status).toBe(410);
     expect(database.visit.create).not.toHaveBeenCalled();
     expect(database.$transaction).not.toHaveBeenCalled();
+  });
+
+  it("hides disabled links without recording analytics", async () => {
+    database.link.findUnique.mockResolvedValue({
+      id: "link_1",
+      shortCode: "disabled",
+      destinationUrl: "https://example.com/destination",
+      expiresAt: null,
+      isDisabled: true,
+    });
+
+    const response = await request(createApp()).get("/disabled");
+
+    expect(response.status).toBe(404);
+    expect(database.visit.create).not.toHaveBeenCalled();
+  });
+
+  it("accepts a privacy-preserving abuse report", async () => {
+    database.link.findUnique.mockResolvedValue({ id: "link_1" });
+    database.abuseReport.create.mockResolvedValue({ id: "report_1" });
+
+    const response = await request(createApp())
+      .post("/api/public/report/suspicious-link")
+      .send({ reason: "phishing", details: "Impersonates a login page." });
+
+    expect(response.status).toBe(202);
+    expect(response.body.data.received).toBe(true);
+    expect(database.abuseReport.create).toHaveBeenCalledWith({
+      data: {
+        linkId: "link_1",
+        reason: "phishing",
+        details: "Impersonates a login page.",
+      },
+    });
   });
 });
 

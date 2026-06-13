@@ -46,4 +46,3 @@ export async function runVisitRetention() {
     cleanupRunning = false;
   }
 }
-

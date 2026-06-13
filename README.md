@@ -46,16 +46,18 @@ public reports, editable destinations, and idempotent CSV imports.
 
 ## Commands
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Run React and Express development servers |
-| `npm run check` | Run linting, tests, and production build |
-| `npm run security:check` | Audit dependencies and run server security tests |
-| `npm run db:generate` | Generate Prisma Client |
-| `npm run db:migrate` | Create/apply a development migration |
-| `npm run db:deploy` | Apply committed production migrations |
-| `npm run db:seed` | Create optional demonstration data |
-| `npm start` | Start the production Express server |
+| Command                    | Purpose                                          |
+| -------------------------- | ------------------------------------------------ |
+| `npm run dev`              | Run React and Express development servers        |
+| `npm run check`            | Run linting, tests, and production build         |
+| `npm run security:check`   | Audit dependencies and run server security tests |
+| `npm run test:e2e`         | Run desktop and mobile Playwright flows          |
+| `npm run evidence:capture` | Capture repeatable UI evidence screenshots       |
+| `npm run db:generate`      | Generate Prisma Client                           |
+| `npm run db:migrate`       | Create/apply a development migration             |
+| `npm run db:deploy`        | Apply committed production migrations            |
+| `npm run db:seed`          | Create optional demonstration data               |
+| `npm start`                | Start the production Express server              |
 
 ## Architecture
 
@@ -76,6 +78,7 @@ origin. Redirect handling and analytics collection remain server-side.
 - [AI planning and module workflow](docs/AI_PLANNING.md)
 - [Architecture details](docs/architecture.md)
 - [REST API](docs/API.md)
+- [Problem-statement requirements matrix](docs/REQUIREMENTS_MATRIX.md)
 - [Security threat model and review log](docs/SECURITY.md)
 - [OWASP ASVS verification checklist](docs/ASVS_CHECKLIST.md)
 - [Render and Neon deployment](docs/DEPLOYMENT.md)

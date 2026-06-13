@@ -15,7 +15,8 @@ const originSchema = z
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Must be an origin without credentials, path, query, or fragment.",
+        message:
+          "Must be an origin without credentials, path, query, or fragment.",
       });
       return z.NEVER;
     }

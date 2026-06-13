@@ -14,13 +14,13 @@
 3. Use the repository root as the root directory.
 4. Configure these values:
 
-| Variable | Value |
-| --- | --- |
-| `DATABASE_URL` | Neon pooled connection string |
-| `APP_ORIGIN` | Final Render HTTPS origin |
-| `PUBLIC_BASE_URL` | Final Render HTTPS origin |
-| `SESSION_SECRET` | At least 32 random characters |
-| `IP_HASH_SECRET` | A different 32+ character random value |
+| Variable            | Value                                                |
+| ------------------- | ---------------------------------------------------- |
+| `DATABASE_URL`      | Neon pooled connection string                        |
+| `APP_ORIGIN`        | Final Render HTTPS origin                            |
+| `PUBLIC_BASE_URL`   | Final Render HTTPS origin                            |
+| `SESSION_SECRET`    | At least 32 random characters                        |
+| `IP_HASH_SECRET`    | A different 32+ character random value               |
 | `TRUST_GEO_HEADERS` | `false` unless a trusted edge overwrites geo headers |
 
 The service runs migrations before starting and exposes `/api/health`.
@@ -40,4 +40,3 @@ The service runs migrations before starting and exposes `/api/health`.
 
 Render free services can sleep when idle. Open the demo URL before recording
 and before an interview demonstration so the service has time to wake.
-
