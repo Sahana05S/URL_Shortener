@@ -10,6 +10,11 @@ public reports, editable destinations, and idempotent CSV imports.
 - **Loom/YouTube walkthrough:** Required before submission. Add the public URL
   here.
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Sahana05S/URL_Shortener)
+
+The Render form still requires a Neon `DATABASE_URL` and the final HTTPS origin
+for both `APP_ORIGIN` and `PUBLIC_BASE_URL`.
+
 ## Features
 
 - Account signup, login, logout, session restoration, and protected routes
@@ -53,6 +58,7 @@ public reports, editable destinations, and idempotent CSV imports.
 | `npm run security:check`   | Audit dependencies and run server security tests |
 | `npm run test:e2e`         | Run desktop and mobile Playwright flows          |
 | `npm run evidence:capture` | Capture repeatable UI evidence screenshots       |
+| `npm run submission:check` | Verify external submission artifacts exist       |
 | `npm run db:generate`      | Generate Prisma Client                           |
 | `npm run db:migrate`       | Create/apply a development migration             |
 | `npm run db:deploy`        | Apply committed production migrations            |
@@ -83,6 +89,7 @@ origin. Redirect handling and analytics collection remain server-side.
 - [OWASP ASVS verification checklist](docs/ASVS_CHECKLIST.md)
 - [Render and Neon deployment](docs/DEPLOYMENT.md)
 - [Video and evidence checklist](docs/DEMO_SCRIPT.md)
+- [Final submission checklist](docs/FINAL_SUBMISSION_CHECKLIST.md)
 
 ## Security Summary
 

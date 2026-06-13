@@ -18,6 +18,7 @@
     "security:check": "npm audit --audit-level=high && npm run test -w server",
     "test:e2e": "playwright test",
     "evidence:capture": "node scripts/capture-evidence.js",
+    "submission:check": "node scripts/verify-submission.js",
     "db:generate": "npm run prisma:generate -w server",
     "db:migrate": "npm run prisma:migrate -w server",
     "db:deploy": "npm run prisma:deploy -w server",
