@@ -23,9 +23,7 @@ export function errorHandler(error, req, res, _next) {
   res.status(status).json({
     error: {
       code: error.code ?? (isServerError ? "INTERNAL_ERROR" : "REQUEST_ERROR"),
-      message: isServerError
-        ? "An unexpected error occurred."
-        : error.message,
+      message: isServerError ? "An unexpected error occurred." : error.message,
       requestId: req.id,
     },
   });
@@ -34,4 +32,3 @@ export function errorHandler(error, req, res, _next) {
 function envSafeStack(error) {
   return process.env.NODE_ENV === "production" ? undefined : error.stack;
 }
-

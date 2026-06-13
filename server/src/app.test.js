@@ -21,4 +21,3 @@ describe("application foundation", () => {
     expect(response.body.error.requestId).toBeTruthy();
   });
 });
-

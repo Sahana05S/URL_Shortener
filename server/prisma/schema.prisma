@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  sessions     Session[]
+  links        Link[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  lastSeenAt DateTime @default(now())
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Link {
+  id             String   @id @default(cuid())
+  shortCode      String   @unique
+  destinationUrl String
+  expiresAt      DateTime?
+  publicStats    Boolean  @default(false)
+  clickCount     Int      @default(0)
+  lastVisitedAt  DateTime?
+  userId         String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  visits         Visit[]
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model Visit {
+  id          String   @id @default(cuid())
+  linkId      String
+  visitedAt   DateTime @default(now())
+  visitorHash String?
+  country     String?
+  city        String?
+  deviceType  String?
+  browser     String?
+  os          String?
+  referrer    String?
+  link        Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@index([linkId, visitedAt(sort: Desc)])
+}

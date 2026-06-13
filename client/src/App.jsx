@@ -1,4 +1,14 @@
-import { ArrowRight, BarChart3, Link2, QrCode, ShieldCheck } from "lucide-react";
+import {
+  ArrowRight,
+  BarChart3,
+  Link2,
+  QrCode,
+  ShieldCheck,
+} from "lucide-react";
+import { Link, Route, Routes } from "react-router-dom";
+import Brand from "./components/Brand.jsx";
+import AuthPage from "./pages/AuthPage.jsx";
+import DashboardPage from "./pages/DashboardPage.jsx";
 
 const features = [
   {
@@ -18,18 +28,18 @@ const features = [
   },
 ];
 
-function Brand() {
+export default function App() {
   return (
-    <a className="brand" href="/" aria-label="Linkora home">
-      <span className="brand-mark">
-        <Link2 size={21} strokeWidth={2.7} />
-      </span>
-      Linkora
-    </a>
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<AuthPage mode="login" />} />
+      <Route path="/signup" element={<AuthPage mode="signup" />} />
+      <Route path="/dashboard" element={<DashboardPage />} />
+    </Routes>
   );
 }
 
-export default function App() {
+function LandingPage() {
   return (
     <div className="site-shell">
       <header className="nav">
@@ -39,12 +49,12 @@ export default function App() {
           <a href="#security">Security</a>
         </nav>
         <div className="nav-actions">
-          <button className="button button-ghost" type="button">
+          <Link className="button button-ghost" to="/login">
             Log in
-          </button>
-          <button className="button button-primary" type="button">
+          </Link>
+          <Link className="button button-primary" to="/signup">
             Start free
-          </button>
+          </Link>
         </div>
       </header>
 
@@ -62,7 +72,10 @@ export default function App() {
             Create branded short links, share them anywhere, and understand
             every click with a beautifully simple analytics workspace.
           </p>
-          <form className="shortener-card" onSubmit={(event) => event.preventDefault()}>
+          <form
+            className="shortener-card"
+            onSubmit={(event) => event.preventDefault()}
+          >
             <label htmlFor="destination">Paste a long URL</label>
             <div className="shortener-row">
               <input
@@ -125,4 +138,3 @@ export default function App() {
     </div>
   );
 }
-

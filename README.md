@@ -36,12 +36,12 @@ analytics.
 
 ## Commands
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Run the React and API development servers |
-| `npm test` | Run client and server tests |
-| `npm run lint` | Run static code checks |
-| `npm run build` | Build the production React application |
+| Command         | Purpose                                      |
+| --------------- | -------------------------------------------- |
+| `npm run dev`   | Run the React and API development servers    |
+| `npm test`      | Run client and server tests                  |
+| `npm run lint`  | Run static code checks                       |
+| `npm run build` | Build the production React application       |
 | `npm run check` | Run linting, tests, and the production build |
 
 ## Environment
@@ -88,4 +88,3 @@ The implementation plan and module history are documented in
 The Loom or YouTube demonstration URL will be added before submission.
 
 This project is a part of a hackathon run by https://katomaran.com
-

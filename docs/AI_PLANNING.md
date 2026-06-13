@@ -38,4 +38,3 @@ a focused commit and push to `main`.
 AI assistance is used for planning, implementation, test generation, security
 review, and documentation. Every generated change is inspected, run locally,
 and retained only when it can be explained and verified.
-
