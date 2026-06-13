@@ -1,5 +1,6 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
+import { getVisitMetadata } from "../lib/analytics.js";
 import { destinationSchema } from "../lib/links.js";
 import { prisma } from "../lib/prisma.js";
 
@@ -39,6 +40,7 @@ router.get("/:shortCode", analyticsWriteLimiter, async (req, res, next) => {
 
     if (!req.skipAnalytics) {
       const now = new Date();
+      const metadata = getVisitMetadata(req, link.id, now);
       await prisma.$transaction([
         prisma.link.update({
           where: { id: link.id },
@@ -49,6 +51,7 @@ router.get("/:shortCode", analyticsWriteLimiter, async (req, res, next) => {
             linkId: link.id,
             visitedAt: now,
             referrer: cleanReferrer(req.get("referer")),
+            ...metadata,
           },
         }),
       ]);

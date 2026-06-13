@@ -23,6 +23,8 @@ const database = vi.hoisted(() => ({
   },
   visit: {
     create: vi.fn(),
+    deleteMany: vi.fn(),
+    findMany: vi.fn(),
   },
 }));
 
@@ -117,6 +119,20 @@ describe("links API", () => {
     expect(database.link.deleteMany).toHaveBeenCalledWith({
       where: { id: "another-users-link", userId: "owner_1" },
     });
+  });
+
+  it("does not expose another user's analytics", async () => {
+    database.link.findFirst.mockResolvedValue(null);
+
+    const response = await authenticated(
+      request(createApp()).get("/api/links/another-users-link/analytics"),
+    );
+
+    expect(response.status).toBe(404);
+    expect(database.link.findFirst).toHaveBeenCalledWith({
+      where: { id: "another-users-link", userId: "owner_1" },
+    });
+    expect(database.visit.findMany).not.toHaveBeenCalled();
   });
 
   it("redirects and records a visit transactionally", async () => {

@@ -5,10 +5,13 @@ import {
   QrCode,
   ShieldCheck,
 } from "lucide-react";
+import { lazy, Suspense } from "react";
 import { Link, Route, Routes } from "react-router-dom";
 import Brand from "./components/Brand.jsx";
 import AuthPage from "./pages/AuthPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
+
+const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage.jsx"));
 
 const features = [
   {
@@ -35,6 +38,16 @@ export default function App() {
       <Route path="/login" element={<AuthPage mode="login" />} />
       <Route path="/signup" element={<AuthPage mode="signup" />} />
       <Route path="/dashboard" element={<DashboardPage />} />
+      <Route
+        path="/dashboard/links/:id"
+        element={
+          <Suspense
+            fallback={<div className="page-loader">Loading analytics...</div>}
+          >
+            <AnalyticsPage />
+          </Suspense>
+        }
+      />
     </Routes>
   );
 }

@@ -10,6 +10,7 @@ import { env } from "./config/env.js";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
 import { requireTrustedOrigin } from "./middleware/origin.js";
 import authRouter from "./routes/auth.js";
+import analyticsRouter from "./routes/analytics.js";
 import linksRouter from "./routes/links.js";
 import redirectRouter from "./routes/redirect.js";
 
@@ -54,6 +55,7 @@ export function createApp() {
   });
   app.use("/api/auth", authRouter);
   app.use("/api/links", linksRouter);
+  app.use("/api/links", analyticsRouter);
 
   if (env.NODE_ENV === "production") {
     app.use(express.static(clientDist, { index: false }));

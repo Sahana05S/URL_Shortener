@@ -21,6 +21,10 @@ const envSchema = z
       .string()
       .min(32)
       .default("development-analytics-secret-change"),
+    TRUST_GEO_HEADERS: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
   })
   .superRefine((values, context) => {
     if (values.NODE_ENV !== "production") return;

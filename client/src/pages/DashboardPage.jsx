@@ -8,10 +8,11 @@ import {
   Plus,
   Search,
   Trash2,
+  Activity,
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import Brand from "../components/Brand.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { apiRequest } from "../lib/api.js";
@@ -229,6 +230,13 @@ function LinkRow({ link, onDelete }) {
         )}
       </div>
       <div className="link-actions">
+        <Link
+          aria-label="View link analytics"
+          className="icon-link"
+          to={`/dashboard/links/${link.id}`}
+        >
+          <Activity size={18} />
+        </Link>
         <button aria-label="Copy short link" onClick={copyLink} type="button">
           {copied ? <Check size={18} /> : <Copy size={18} />}
         </button>

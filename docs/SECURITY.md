@@ -59,3 +59,13 @@ audits, static review, authorization tests, or OWASP ZAP.
   redirect write-amplification controls were added before commit.
 - Redirects continue when a single client exceeds the analytics write limit,
   but excess requests are intentionally not recorded.
+
+### Analytics Privacy Defaults
+
+- Raw IP addresses are never stored.
+- Daily visitor pseudonyms are HMAC-protected and scoped to a single link.
+- Geolocation headers are ignored unless `TRUST_GEO_HEADERS=true` is explicitly
+  set behind an edge proxy that strips visitor-supplied versions.
+- City-level location is not retained; country is the maximum precision.
+- Visits older than 180 days are removed opportunistically during analytics
+  requests.
