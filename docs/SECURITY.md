@@ -48,3 +48,14 @@ audits, static review, authorization tests, or OWASP ZAP.
 - Authentication uses separate IP and normalized-account throttles. Their state
   is process-local because the planned Render deployment runs one instance;
   move the limiter to a shared store before horizontal scaling.
+
+### Module 3: Link Management And Redirects
+
+- Independent security-agent review completed.
+- Ownership-scoped reads and deletes showed no IDOR defect; destination output
+  remains React-escaped and Prisma-parameterized.
+- Reserved static namespaces, bounded pagination, canonical short URL
+  generation, destination defense-in-depth, referrer minimization, and
+  redirect write-amplification controls were added before commit.
+- Redirects continue when a single client exceeds the analytics write limit,
+  but excess requests are intentionally not recorded.

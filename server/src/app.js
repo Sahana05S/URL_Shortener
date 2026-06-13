@@ -10,6 +10,8 @@ import { env } from "./config/env.js";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
 import { requireTrustedOrigin } from "./middleware/origin.js";
 import authRouter from "./routes/auth.js";
+import linksRouter from "./routes/links.js";
+import redirectRouter from "./routes/redirect.js";
 
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
 const clientDist = path.resolve(currentDirectory, "../../client/dist");
@@ -51,15 +53,17 @@ export function createApp() {
     });
   });
   app.use("/api/auth", authRouter);
+  app.use("/api/links", linksRouter);
 
   if (env.NODE_ENV === "production") {
     app.use(express.static(clientDist, { index: false }));
-    app.get("*splat", (req, res, next) => {
-      if (req.path.startsWith("/api/")) return next();
-      return res.sendFile(path.join(clientDist, "index.html"));
-    });
+    app.get(
+      ["/", "/login", "/signup", "/dashboard", "/stats/:shortCode"],
+      (_req, res) => res.sendFile(path.join(clientDist, "index.html")),
+    );
   }
 
+  app.use(redirectRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);
 

@@ -8,6 +8,7 @@ const envSchema = z
       .default("development"),
     PORT: z.coerce.number().int().positive().default(4000),
     APP_ORIGIN: z.string().url().default("http://localhost:5173"),
+    PUBLIC_BASE_URL: z.string().url().default("http://localhost:4000"),
     DATABASE_URL: z
       .string()
       .min(1)
@@ -25,6 +26,7 @@ const envSchema = z
     if (values.NODE_ENV !== "production") return;
     const forbidden = [
       ["DATABASE_URL", "postgresql://user:password@localhost:5432/linkora"],
+      ["PUBLIC_BASE_URL", "http://localhost:4000"],
       ["SESSION_SECRET", "development-session-secret-change-me"],
       ["IP_HASH_SECRET", "development-analytics-secret-change"],
     ];
