@@ -2,6 +2,7 @@ import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import { aggregateDaily, aggregateField } from "../lib/analytics.js";
+import { linkIdSchema } from "../lib/links.js";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middleware/auth.js";
 
@@ -20,12 +21,14 @@ router.use(
 const querySchema = z.object({
   days: z.coerce.number().int().min(7).max(90).default(30),
 });
+const paramsSchema = z.object({ id: linkIdSchema });
 
 router.get("/:id/analytics", async (req, res, next) => {
   try {
     const { days } = querySchema.parse(req.query);
+    const { id } = paramsSchema.parse(req.params);
     const link = await prisma.link.findFirst({
-      where: { id: req.params.id, userId: req.user.id },
+      where: { id, userId: req.user.id },
     });
     if (!link) {
       return res.status(404).json({
@@ -41,8 +44,6 @@ router.get("/:id/analytics", async (req, res, next) => {
     since.setUTCDate(since.getUTCDate() - (days - 1));
     since.setUTCHours(0, 0, 0, 0);
 
-    const retentionCutoff = new Date();
-    retentionCutoff.setUTCDate(retentionCutoff.getUTCDate() - 180);
     const [periodVisits, recentVisits] = await Promise.all([
       prisma.visit.findMany({
         where: { linkId: link.id, visitedAt: { gte: since } },
@@ -70,9 +71,6 @@ router.get("/:id/analytics", async (req, res, next) => {
           os: true,
           referrer: true,
         },
-      }),
-      prisma.visit.deleteMany({
-        where: { visitedAt: { lt: retentionCutoff } },
       }),
     ]);
 

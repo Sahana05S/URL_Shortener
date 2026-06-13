@@ -29,6 +29,21 @@ export function createApp() {
     res.setHeader("x-request-id", req.id);
     next();
   });
+  if (env.NODE_ENV === "production") {
+    app.use((req, res, next) => {
+      if (req.secure) return next();
+      if (req.method === "GET" || req.method === "HEAD") {
+        return res.redirect(308, `${env.PUBLIC_BASE_URL}${req.originalUrl}`);
+      }
+      return res.status(426).json({
+        error: {
+          code: "HTTPS_REQUIRED",
+          message: "HTTPS is required.",
+          requestId: req.id,
+        },
+      });
+    });
+  }
   app.use(
     helmet({
       contentSecurityPolicy: {

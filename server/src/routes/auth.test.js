@@ -138,4 +138,28 @@ describe("authentication API", () => {
       where: { id: "session_1" },
     });
   });
+
+  it("deletes the active session during logout", async () => {
+    database.session.findUnique.mockResolvedValue({
+      id: "session_1",
+      expiresAt: new Date(Date.now() + 60_000),
+      lastSeenAt: new Date(),
+      user: {
+        id: "user_1",
+        name: "Sahana",
+        email: "sahana@example.com",
+      },
+    });
+    database.session.delete.mockResolvedValue({ id: "session_1" });
+
+    const response = await request(createApp())
+      .post("/api/auth/logout")
+      .set("Cookie", "linkora_session=valid-session-token");
+
+    expect(response.status).toBe(204);
+    expect(database.session.delete).toHaveBeenCalledWith({
+      where: { id: "session_1" },
+    });
+    expect(response.headers["set-cookie"][0]).toContain("linkora_session=");
+  });
 });

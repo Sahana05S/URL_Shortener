@@ -1,7 +1,7 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { getVisitMetadata } from "../lib/analytics.js";
-import { destinationSchema } from "../lib/links.js";
+import { destinationSchema, shortCodeSchema } from "../lib/links.js";
 import { prisma } from "../lib/prisma.js";
 
 const router = Router();
@@ -18,11 +18,15 @@ const analyticsWriteLimiter = rateLimit({
 
 router.get("/:shortCode", analyticsWriteLimiter, async (req, res, next) => {
   try {
+    const shortCode = shortCodeSchema.safeParse(req.params.shortCode);
+    if (!shortCode.success) {
+      return res.status(404).send(renderStatusPage("Link not found", "404"));
+    }
     const link = await prisma.link.findUnique({
-      where: { shortCode: req.params.shortCode },
+      where: { shortCode: shortCode.data },
     });
 
-    if (!link) {
+    if (!link || link.isDisabled) {
       return res.status(404).send(renderStatusPage("Link not found", "404"));
     }
     if (link.expiresAt && link.expiresAt <= new Date()) {

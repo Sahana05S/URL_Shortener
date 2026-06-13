@@ -15,6 +15,22 @@ const reservedCodes = new Set([
   "health",
 ]);
 
+export const MAX_LINKS_PER_USER = 1000;
+
+export const linkIdSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(128)
+  .regex(/^[A-Za-z0-9_-]+$/, "Invalid link identifier.");
+
+export const shortCodeSchema = z
+  .string()
+  .trim()
+  .min(3)
+  .max(40)
+  .regex(/^[A-Za-z0-9_-]+$/, "Invalid short code.");
+
 export const aliasSchema = z
   .string()
   .trim()

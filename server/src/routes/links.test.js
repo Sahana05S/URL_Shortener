@@ -304,6 +304,21 @@ describe("links API", () => {
       }),
     });
   });
+
+  it("returns 410 for expired links without recording analytics", async () => {
+    database.link.findUnique.mockResolvedValue({
+      id: "link_1",
+      shortCode: "expired",
+      destinationUrl: "https://example.com/destination",
+      expiresAt: new Date(Date.now() - 60_000),
+    });
+
+    const response = await request(createApp()).get("/expired");
+
+    expect(response.status).toBe(410);
+    expect(database.visit.create).not.toHaveBeenCalled();
+    expect(database.$transaction).not.toHaveBeenCalled();
+  });
 });
 
 function authenticated(testRequest) {

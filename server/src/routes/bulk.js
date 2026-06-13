@@ -10,6 +10,7 @@ import {
   destinationSchema,
   generateShortCode,
   isUniqueConstraintError,
+  MAX_LINKS_PER_USER,
 } from "../lib/links.js";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middleware/auth.js";
@@ -70,6 +71,10 @@ const rowSchema = z.object({
     })
     .default("false"),
 });
+const bulkRequestSchema = z.object({
+  mode: z.enum(["preview", "process"]).default("preview"),
+  importId: z.string().uuid(),
+});
 
 router.post("/", (req, res, next) => {
   upload.single("file")(req, res, (uploadError) => {
@@ -97,8 +102,7 @@ async function handleBulk(req, res, next) {
         },
       });
     }
-    const mode = req.body.mode === "process" ? "process" : "preview";
-    const importId = z.string().uuid().parse(req.body.importId);
+    const { mode, importId } = bulkRequestSchema.parse(req.body);
     const records = parseCsv(req.file.buffer);
     if (records.length === 0 || records.length > 100) {
       return res.status(422).json({
@@ -160,8 +164,19 @@ async function handleBulk(req, res, next) {
     }
 
     if (mode === "process") {
+      const ownedLinkCount = await prisma.link.count({
+        where: { userId: req.user.id },
+      });
+      let remainingSlots = Math.max(0, MAX_LINKS_PER_USER - ownedLinkCount);
       for (const row of rows) {
         if (row.status !== "valid") continue;
+        if (remainingSlots === 0) {
+          row.status = "failed";
+          row.errors = [
+            `Account link quota of ${MAX_LINKS_PER_USER} has been reached.`,
+          ];
+          continue;
+        }
         try {
           const idempotencyKey = createIdempotencyKey(
             importId,
@@ -176,6 +191,7 @@ async function handleBulk(req, res, next) {
           row.status = "created";
           row.shortCode = link.shortCode;
           row.shortUrl = `${env.PUBLIC_BASE_URL}/${link.shortCode}`;
+          remainingSlots -= 1;
         } catch (error) {
           row.status = "failed";
           row.errors = [

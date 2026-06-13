@@ -1,14 +1,35 @@
 import "dotenv/config";
 import { z } from "zod";
 
+const originSchema = z
+  .string()
+  .url()
+  .transform((value, context) => {
+    const url = new URL(value);
+    if (
+      url.username ||
+      url.password ||
+      url.pathname !== "/" ||
+      url.search ||
+      url.hash
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Must be an origin without credentials, path, query, or fragment.",
+      });
+      return z.NEVER;
+    }
+    return url.origin;
+  });
+
 const envSchema = z
   .object({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
     PORT: z.coerce.number().int().positive().default(4000),
-    APP_ORIGIN: z.string().url().default("http://localhost:5173"),
-    PUBLIC_BASE_URL: z.string().url().default("http://localhost:4000"),
+    APP_ORIGIN: originSchema.default("http://localhost:5173"),
+    PUBLIC_BASE_URL: originSchema.default("http://localhost:4000"),
     DATABASE_URL: z
       .string()
       .min(1)
@@ -30,6 +51,7 @@ const envSchema = z
     if (values.NODE_ENV !== "production") return;
     const forbidden = [
       ["DATABASE_URL", "postgresql://user:password@localhost:5432/linkora"],
+      ["APP_ORIGIN", "http://localhost:5173"],
       ["PUBLIC_BASE_URL", "http://localhost:4000"],
       ["SESSION_SECRET", "development-session-secret-change-me"],
       ["IP_HASH_SECRET", "development-analytics-secret-change"],
@@ -43,6 +65,26 @@ const envSchema = z
         });
       }
     }
+    for (const field of ["APP_ORIGIN", "PUBLIC_BASE_URL"]) {
+      if (new URL(values[field]).protocol !== "https:") {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `${field} must use HTTPS in production.`,
+          path: [field],
+        });
+      }
+    }
+    if (values.SESSION_SECRET === values.IP_HASH_SECRET) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "SESSION_SECRET and IP_HASH_SECRET must be different.",
+        path: ["IP_HASH_SECRET"],
+      });
+    }
   });
 
-export const env = envSchema.parse(process.env);
+export function parseEnv(values) {
+  return envSchema.parse(values);
+}
+
+export const env = parseEnv(process.env);

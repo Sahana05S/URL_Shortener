@@ -1,0 +1,10 @@
+10021	IGNORE	(X-Content-Type-Options Header Missing)
+10020	FAIL	(X-Frame-Options Header)
+10038	FAIL	(Content Security Policy Header Not Set)
+10010	WARN	(Cookie No HttpOnly Flag)
+10011	WARN	(Cookie Without Secure Flag)
+10054	FAIL	(Cookie without SameSite Attribute)
+40012	FAIL	(Cross Site Scripting Reflected)
+40014	FAIL	(Cross Site Scripting Persistent)
+40018	FAIL	(SQL Injection)
+

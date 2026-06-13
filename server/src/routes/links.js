@@ -8,6 +8,8 @@ import {
   destinationSchema,
   generateShortCode,
   isUniqueConstraintError,
+  linkIdSchema,
+  MAX_LINKS_PER_USER,
 } from "../lib/links.js";
 import { requireAuth } from "../middleware/auth.js";
 
@@ -61,10 +63,23 @@ const listLinksSchema = z.object({
   search: z.string().trim().max(200).default(""),
   sort: z.enum(["newest", "oldest", "clicks"]).default("newest"),
 });
+const idParamsSchema = z.object({ id: linkIdSchema });
 
 router.post("/", mutationLimiter, async (req, res, next) => {
   try {
     const input = createLinkSchema.parse(req.body);
+    const ownedLinkCount = await prisma.link.count({
+      where: { userId: req.user.id },
+    });
+    if (ownedLinkCount >= MAX_LINKS_PER_USER) {
+      return res.status(409).json({
+        error: {
+          code: "LINK_QUOTA_REACHED",
+          message: `Each account can own up to ${MAX_LINKS_PER_USER} links.`,
+          requestId: req.id,
+        },
+      });
+    }
     const requestedAlias = input.customAlias || null;
     const link = requestedAlias
       ? await createWithCode(input, requestedAlias, req.user.id)
@@ -157,18 +172,21 @@ router.post("/check-alias", async (req, res, next) => {
 
 router.get("/:id", async (req, res, next) => {
   try {
+    const { id } = idParamsSchema.parse(req.params);
     const link = await prisma.link.findFirst({
-      where: { id: req.params.id, userId: req.user.id },
+      where: { id, userId: req.user.id },
     });
     if (!link) return linkNotFound(req, res);
     return res.json({ data: { link: serializeLink(link, req) } });
   } catch (error) {
+    if (error instanceof z.ZodError) return validationError(error, req, res);
     return next(error);
   }
 });
 
 router.patch("/:id", mutationLimiter, async (req, res, next) => {
   try {
+    const { id } = idParamsSchema.parse(req.params);
     const input = updateLinkSchema.parse(req.body);
     const data = {
       ...(input.destinationUrl !== undefined
@@ -182,12 +200,12 @@ router.patch("/:id", mutationLimiter, async (req, res, next) => {
         : {}),
     };
     const result = await prisma.link.updateMany({
-      where: { id: req.params.id, userId: req.user.id },
+      where: { id, userId: req.user.id },
       data,
     });
     if (result.count === 0) return linkNotFound(req, res);
     const link = await prisma.link.findFirst({
-      where: { id: req.params.id, userId: req.user.id },
+      where: { id, userId: req.user.id },
     });
     return res.json({ data: { link: serializeLink(link, req) } });
   } catch (error) {
@@ -198,12 +216,14 @@ router.patch("/:id", mutationLimiter, async (req, res, next) => {
 
 router.delete("/:id", mutationLimiter, async (req, res, next) => {
   try {
+    const { id } = idParamsSchema.parse(req.params);
     const result = await prisma.link.deleteMany({
-      where: { id: req.params.id, userId: req.user.id },
+      where: { id, userId: req.user.id },
     });
     if (result.count === 0) return linkNotFound(req, res);
     return res.status(204).send();
   } catch (error) {
+    if (error instanceof z.ZodError) return validationError(error, req, res);
     return next(error);
   }
 });

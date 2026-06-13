@@ -38,6 +38,7 @@ model Link {
   destinationUrl String
   expiresAt      DateTime?
   publicStats    Boolean  @default(false)
+  isDisabled     Boolean  @default(false)
   clickCount     Int      @default(0)
   lastVisitedAt  DateTime?
   userId         String
@@ -46,6 +47,7 @@ model Link {
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   visits         Visit[]
   bulkImportRow  BulkImportRow?
+  abuseReports   AbuseReport[]
 
   @@index([userId, createdAt(sort: Desc)])
 }
@@ -76,4 +78,16 @@ model Visit {
   link        Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
 
   @@index([linkId, visitedAt(sort: Desc)])
+  @@index([visitedAt])
+}
+
+model AbuseReport {
+  id        String   @id @default(cuid())
+  linkId    String
+  reason    String
+  details   String?
+  createdAt DateTime @default(now())
+  link      Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@index([linkId, createdAt(sort: Desc)])
 }

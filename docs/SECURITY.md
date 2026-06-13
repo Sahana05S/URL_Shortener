@@ -33,8 +33,10 @@ deployment proxy, CSV upload parser, and outbound redirect boundary.
 
 ## Release Gate
 
-Deployment is blocked by unresolved critical or high findings from dependency
-audits, static review, authorization tests, or OWASP ZAP.
+CI and the Render build are blocked by lint, test, build, or high/critical
+dependency-audit failures. CodeQL runs on pushes and pull requests. OWASP ZAP is
+a deployment gate and must be run against the final HTTPS service before
+submission.
 
 ## Review Log
 
@@ -67,8 +69,20 @@ audits, static review, authorization tests, or OWASP ZAP.
 - Geolocation headers are ignored unless `TRUST_GEO_HEADERS=true` is explicitly
   set behind an edge proxy that strips visitor-supplied versions.
 - City-level location is not retained; country is the maximum precision.
-- Visits older than 180 days are removed opportunistically during analytics
-  requests.
+- Visits older than 180 days are removed by a non-overlapping maintenance task
+  in indexed batches.
+
+### Final System Review
+
+- Independent repository-wide OWASP review found no critical or high issues.
+- Retention cleanup was moved out of user requests, and public report caching
+  was bounded.
+- Production origins now require HTTPS and origin-only URLs; session and
+  analytics secrets must differ.
+- Account link quotas, disabled-link handling, and privacy-preserving abuse
+  reports reduce redirect-service misuse.
+- CI actions are pinned to immutable commits, and both CI and Render execute
+  the quality/dependency gate.
 
 ### Module 5: Link Controls And Public Statistics
 
