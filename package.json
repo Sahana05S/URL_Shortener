@@ -20,9 +20,9 @@
     "evidence:capture": "node scripts/capture-evidence.js",
     "submission:check": "node scripts/verify-submission.js",
     "db:generate": "node --env-file-if-exists=.env node_modules/prisma/build/index.js generate --schema server/prisma/schema.prisma",
-    "db:migrate": "node --env-file=.env node_modules/prisma/build/index.js migrate dev --schema server/prisma/schema.prisma",
-    "db:deploy": "node --env-file=.env node_modules/prisma/build/index.js migrate deploy --schema server/prisma/schema.prisma",
-    "db:seed": "node --env-file=.env server/prisma/seed.js",
+    "db:migrate": "node --env-file-if-exists=.env node_modules/prisma/build/index.js migrate dev --schema server/prisma/schema.prisma",
+    "db:deploy": "node --env-file-if-exists=.env node_modules/prisma/build/index.js migrate deploy --schema server/prisma/schema.prisma",
+    "db:seed": "node --env-file-if-exists=.env server/prisma/seed.js",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
