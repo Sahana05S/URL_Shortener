@@ -3,7 +3,7 @@ services:
     name: linkora
     runtime: node
     plan: free
-    buildCommand: npm ci --include=dev && npm run check && npm audit --audit-level=high
+    buildCommand: npm ci --include=dev && NODE_ENV=test npm run lint && NODE_ENV=test npm run test && NODE_ENV=production npm run build && npm audit --audit-level=high
     startCommand: npm run db:deploy && npm start
     healthCheckPath: /api/health
     envVars:
