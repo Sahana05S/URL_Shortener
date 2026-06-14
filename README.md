@@ -5,10 +5,18 @@ short links from one clean workspace. It combines branded aliases, QR codes,
 expiry controls, bulk CSV imports, and privacy-aware traffic analytics in a
 responsive white-first interface.
 
-[Open the live application](https://linkora-i208.onrender.com)
+- **Live application:** https://linkora-i208.onrender.com
+- **Loom/YouTube walkthrough:** Add the public video URL here before
+  submission.
 
 > The free Render service may take up to a minute to wake after a period of
 > inactivity.
+
+## Video Walkthrough
+
+The walkthrough should explain the architecture and demonstrate authentication,
+link creation, redirects, analytics, QR codes, expiry, public statistics, link
+editing, and bulk CSV import.
 
 ## Product Preview
 
@@ -303,10 +311,34 @@ npm.cmd run security:check
 
 The repository also runs CI, browser tests, and CodeQL through GitHub Actions.
 
+## Assumptions
+
+- Users must create an account before saving and managing short links.
+- Every private link, dashboard record, and analytics report belongs to one
+  authenticated user.
+- Destination URLs must use HTTP or HTTPS.
+- Custom aliases are globally unique and cannot be changed after creation;
+  their destination URLs remain editable.
+- Public statistics are disabled by default and expose aggregate information
+  only when the owner enables them.
+- Raw visitor IP addresses are never stored. Approximate visitor identifiers
+  are generated with a separate secret.
+- Country analytics are available only when a trusted deployment edge supplies
+  and overwrites geographic headers.
+- Dates are stored in UTC and presented in the viewer's local timezone.
+- Bulk imports contain no more than 100 data rows and are no larger than 1 MB.
+- A free Render instance may sleep during inactivity and require extra time for
+  its first request.
+- Local and production environments should normally use separate databases.
+  If both use the same `DATABASE_URL`, they intentionally share users and data.
+
 ## Additional Documentation
 
+- [AI planning document](docs/AI_PLANNING.md)
 - [Architecture](docs/architecture.md)
 - [REST API](docs/API.md)
 - [Security model](docs/SECURITY.md)
 - [OWASP ASVS checklist](docs/ASVS_CHECKLIST.md)
 - [Render and Neon deployment](docs/DEPLOYMENT.md)
+
+This project is a part of a hackathon run by https://katomaran.com
