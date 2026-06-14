@@ -1,5 +1,3 @@
-cd E:\Sahana\URL_Shortener# Security Baseline
-
 ## Standard
 
 Linkora targets OWASP ASVS 5.0 Level 1 and explicitly tests applicable risks
