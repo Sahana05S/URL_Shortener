@@ -1,120 +1,312 @@
 # Linkora
 
-Linkora is a secure full-stack URL shortener with a polished white-first
-interface, custom links, privacy-aware analytics, QR codes, expiry controls,
-public reports, editable destinations, and idempotent CSV imports.
+Linkora is a full-stack URL shortener for creating, managing, and measuring
+short links from one clean workspace. It combines branded aliases, QR codes,
+expiry controls, bulk CSV imports, and privacy-aware traffic analytics in a
+responsive white-first interface.
 
-## Live Demo And Video
+[Open the live application](https://linkora-i208.onrender.com)
 
-- **Live application:** https://linkora-i208.onrender.com
-- **Loom/YouTube walkthrough:** Required before submission. Add the public URL
-  here.
+> The free Render service may take up to a minute to wake after a period of
+> inactivity.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Sahana05S/URL_Shortener)
+## Product Preview
 
-The Render form still requires a Neon `DATABASE_URL` and the final HTTPS origin
-for both `APP_ORIGIN` and `PUBLIC_BASE_URL`.
+### Landing page
 
-## Features
+![Linkora landing page](docs/evidence/landing.png)
 
-- Account signup, login, logout, session restoration, and protected routes
-- Strict per-user ownership for link management and private analytics
-- Generated short codes and normalized custom aliases
-- HTTP(S) destination validation and server-side HTTP 302 redirects
-- Searchable, sortable, responsive link dashboard with copy and delete actions
-- Click count, last visit, recent history, daily trends, device, browser, and
-  approximate country analytics
-- Editable destinations, future expiry, branded `410` handling, and QR download
-- Owner-controlled aggregate public statistics
-- CSV validation preview and retry-safe partial processing for up to 100 rows
-- Loading, empty, success, validation, retry, and error states
-- Rebrandly-inspired original design using `#5D1C6A`, `#CA5995`, `#FFB090`, and
-  `#FFF1D3` over white surfaces
+### Link dashboard
+
+![Linkora dashboard](docs/evidence/dashboard.png)
+
+### Traffic analytics
+
+![Linkora analytics dashboard](docs/evidence/analytics.png)
+
+### Responsive layout
+
+![Linkora mobile interface](docs/evidence/mobile.png)
+
+## What You Can Do
+
+### Accounts and access
+
+- Create an account, sign in, sign out, and restore an active session.
+- Keep the dashboard, links, and analytics private to their owner.
+- Use secure, revocable, database-backed sessions across browser visits.
+
+### Short links
+
+- Turn any valid HTTP or HTTPS destination into a short URL.
+- Let Linkora generate a unique code or choose a memorable custom alias.
+- Copy, open, search, sort, edit, and delete links from the dashboard.
+- Redirect visitors from the short URL through the Express server.
+- Disable expired links automatically and show a friendly expiration page.
+
+### QR codes and public statistics
+
+- Generate a QR code for every short link.
+- Download the QR code as a PNG for sharing or print.
+- Make aggregate statistics public on a link-by-link basis.
+- Keep public statistics disabled by default.
+
+### Analytics
+
+- Track total clicks, the most recent visit, and approximate daily visitors.
+- Explore traffic over selectable time periods.
+- Review daily click trends in a chart.
+- Break traffic down by device type, browser, and approximate country.
+- Inspect recent visits without storing raw visitor IP addresses.
+
+### Bulk shortening
+
+- Upload as many as 100 links in a CSV file of up to 1 MB.
+- Preview and validate every row before creating links.
+- Import valid rows even when another row needs correction.
+- Add custom aliases, expiration dates, and public-statistics preferences.
+- Retry processing safely without duplicating already imported rows.
+- Download the included [sample CSV](samples/linkora-test-import.csv).
+
+The required CSV columns are:
+
+```csv
+original_url,custom_alias,expires_at,public_stats
+https://example.com/docs,my-docs,2027-12-31T23:59:59Z,true
+```
+
+## Using the Live Version
+
+1. Open [Linkora on Render](https://linkora-i208.onrender.com).
+2. Select **Start free** and create an account, or select **Log in**.
+3. Choose **Create link** from the dashboard.
+4. Enter a destination URL and optionally configure an alias, expiry date, and
+   public statistics.
+5. Copy or open the resulting short URL.
+6. Open the analytics icon beside a link to review its traffic.
+7. Open the edit icon to change its destination, expiry, public access, or
+   download its QR code.
+8. Use **Bulk import** to validate and create links from a CSV file.
+
+Accounts and links created on the deployed application are stored in its Neon
+PostgreSQL database. Do not use real passwords that you also use elsewhere.
 
 ## Technology
 
-- React 19, Vite, React Router, Recharts, and Lucide
-- Node.js 22, Express 5, Zod, and Prisma
-- PostgreSQL on Neon
-- Vitest, Testing Library, and Supertest
-- Render, GitHub Actions, CodeQL, Dependabot, and OWASP ZAP
-
-## Local Setup
-
-1. Install Node.js 22 and PostgreSQL.
-2. Run `npm install`.
-3. Copy `.env.example` to `.env` and replace every placeholder.
-4. Create the database and run `npm run db:migrate`.
-5. Optionally configure the demo variables and run `npm run db:seed`.
-6. Start both applications with `npm run dev`.
-7. Open `http://localhost:5173`.
-
-## Commands
-
-| Command                    | Purpose                                          |
-| -------------------------- | ------------------------------------------------ |
-| `npm run dev`              | Run React and Express development servers        |
-| `npm run check`            | Run linting, tests, and production build         |
-| `npm run security:check`   | Audit dependencies and run server security tests |
-| `npm run test:e2e`         | Run desktop and mobile Playwright flows          |
-| `npm run evidence:capture` | Capture repeatable UI evidence screenshots       |
-| `npm run submission:check` | Verify external submission artifacts exist       |
-| `npm run db:generate`      | Generate Prisma Client                           |
-| `npm run db:migrate`       | Create/apply a development migration             |
-| `npm run db:deploy`        | Apply committed production migrations            |
-| `npm run db:seed`          | Create optional demonstration data               |
-| `npm start`                | Start the production Express server              |
+| Layer               | Technology                                     |
+| ------------------- | ---------------------------------------------- |
+| Frontend            | React 19, Vite, React Router, Recharts, Lucide |
+| Backend             | Node.js 22, Express 5, Zod                     |
+| Database            | PostgreSQL, Prisma ORM                         |
+| Hosting             | Render web service and Neon PostgreSQL         |
+| Testing             | Vitest, Testing Library, Supertest, Playwright |
+| Security automation | CodeQL, Dependabot, npm audit, OWASP ZAP       |
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  Browser --> React[React application]
-  React -->|REST API| Express[Express server]
+  Browser -->|Pages and REST requests| Express[Express server]
+  Express --> React[Compiled React application]
+  Express -->|Prisma queries| Postgres[(PostgreSQL)]
   Browser -->|Short URL| Express
-  Express -->|302 redirect| Destination[Destination website]
-  Express --> Postgres[(Neon PostgreSQL)]
+  Express -->|HTTP 302| Destination[Destination website]
 ```
 
-Express serves the compiled React application and REST API from one production
-origin. Redirect handling and analytics collection remain server-side.
+During local development, Vite serves React on port `5173` and proxies API
+requests to Express on port `4000`. In production, Express serves the compiled
+React application, REST API, and short-link redirects from one HTTPS origin.
 
-## Documentation
+## Run Locally
 
-- [AI planning and module workflow](docs/AI_PLANNING.md)
-- [Architecture details](docs/architecture.md)
+### Prerequisites
+
+- Node.js 22 or newer
+- npm
+- A PostgreSQL database
+
+The simplest database option is a free
+[Neon PostgreSQL](https://neon.tech/) project. Copy its pooled connection
+string after creating the project.
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/Sahana05S/URL_Shortener.git
+cd URL_Shortener
+npm install
+```
+
+Windows PowerShell may block `npm.ps1`. In that case, use `npm.cmd` for every
+npm command:
+
+```powershell
+npm.cmd install
+```
+
+### 2. Create the environment file
+
+Copy the example file:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+On macOS or Linux:
+
+```bash
+cp .env.example .env
+```
+
+Configure `.env`:
+
+```dotenv
+NODE_ENV=development
+PORT=4000
+APP_ORIGIN=http://localhost:5173
+PUBLIC_BASE_URL=http://localhost:4000
+DATABASE_URL="postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require"
+SESSION_SECRET="a-random-secret-containing-at-least-32-characters"
+IP_HASH_SECRET="a-different-random-secret-containing-at-least-32-characters"
+TRUST_GEO_HEADERS=false
+DEMO_NAME=Demo User
+DEMO_EMAIL=demo@example.com
+DEMO_PASSWORD="choose-a-strong-demo-password"
+```
+
+Generate each secret separately with:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+```
+
+Never commit `.env` or publish its database credentials and secrets.
+
+### 3. Prepare the database
+
+```powershell
+npm.cmd run db:generate
+npm.cmd run db:migrate
+```
+
+Optionally create the configured demonstration user and sample data:
+
+```powershell
+npm.cmd run db:seed
+```
+
+The seed writes to the database identified by `DATABASE_URL`. If local and
+deployed environments use the same Neon database, the demo account will be
+available in both.
+
+### 4. Start the application
+
+```powershell
+npm.cmd run dev
+```
+
+Open:
+
+- Website: <http://localhost:5173>
+- API health check: <http://localhost:4000/api/health>
+
+Keep the terminal open while using the application. Press `Ctrl+C` to stop
+both development servers.
+
+## Environment Variables
+
+| Variable            | Purpose                                                    |
+| ------------------- | ---------------------------------------------------------- |
+| `NODE_ENV`          | Selects development, test, or production behavior          |
+| `PORT`              | Express server port; defaults to `4000`                    |
+| `APP_ORIGIN`        | Browser origin allowed to make authenticated API requests  |
+| `PUBLIC_BASE_URL`   | Base address used when Linkora creates short URLs          |
+| `DATABASE_URL`      | PostgreSQL connection string used by Prisma                |
+| `SESSION_SECRET`    | Secret material for authentication session protection      |
+| `IP_HASH_SECRET`    | Separate secret used for privacy-aware visitor identifiers |
+| `TRUST_GEO_HEADERS` | Enables trusted edge-provided geographic headers           |
+| `DEMO_*`            | Optional values used only by the database seed command     |
+
+Local values belong in `.env`. Hosted values belong in the hosting provider's
+environment-variable dashboard. Render does not read the `.env` file stored on
+your computer.
+
+## Useful Commands
+
+| Command                  | Purpose                                                        |
+| ------------------------ | -------------------------------------------------------------- |
+| `npm run dev`            | Start the React and Express development servers                |
+| `npm run check`          | Run ESLint, all unit/integration tests, and a production build |
+| `npm run security:check` | Audit dependencies and run server security tests               |
+| `npm run test:e2e`       | Run desktop and mobile Playwright browser tests                |
+| `npm run build`          | Compile the React production application                       |
+| `npm start`              | Start the production Express server                            |
+| `npm run db:generate`    | Generate Prisma Client                                         |
+| `npm run db:migrate`     | Create or apply development migrations                         |
+| `npm run db:deploy`      | Apply committed migrations in production                       |
+| `npm run db:seed`        | Create optional demonstration data                             |
+
+Use the corresponding `npm.cmd` form on Windows when PowerShell script
+execution is disabled.
+
+## Deploy Your Own Copy
+
+The repository includes [render.yaml](render.yaml), so it can be deployed as a
+Render Blueprint.
+
+1. Fork or clone this repository to your GitHub account.
+2. Create a Neon PostgreSQL project and copy its pooled connection string.
+3. In Render, choose **New**, then **Blueprint**.
+4. Connect the GitHub repository and allow Render to read `render.yaml`.
+5. Configure `DATABASE_URL` with the Neon connection string.
+6. Initially set `APP_ORIGIN` and `PUBLIC_BASE_URL` to the expected Render
+   HTTPS address.
+7. Deploy the Blueprint.
+8. After Render assigns the final URL, set both variables to that exact origin,
+   for example `https://your-service.onrender.com`, and save the changes.
+9. Verify `https://your-service.onrender.com/api/health`.
+
+Render installs dependencies, runs linting and tests, builds React, applies
+Prisma migrations, and starts Express. Free Render services sleep after
+inactivity, so the first request may be delayed.
+
+See [the deployment guide](docs/DEPLOYMENT.md) for production verification.
+
+## Security
+
+Linkora includes layered controls based on applicable OWASP guidance:
+
+- Password hashing with bcrypt
+- Revocable server-side sessions and secure production cookies
+- Origin validation for authenticated API requests
+- Ownership checks on links and analytics
+- Zod validation and Prisma parameterized database access
+- Authentication, link-creation, and bulk-import rate limits
+- Helmet security headers and a restrictive Content Security Policy
+- Bounded request bodies, CSV sizes, row counts, and analytics retention
+- Separate session and analytics secrets
+- No storage of raw visitor IP addresses
+- Dependency auditing, CodeQL, and an on-demand OWASP ZAP workflow
+
+Security controls reduce known risks but do not guarantee that any application
+is invulnerable. See [SECURITY.md](docs/SECURITY.md) for the threat model and
+review notes.
+
+## Testing
+
+Run the complete local verification suite:
+
+```powershell
+npm.cmd run check
+npm.cmd run security:check
+```
+
+The repository also runs CI, browser tests, and CodeQL through GitHub Actions.
+
+## Additional Documentation
+
+- [Architecture](docs/architecture.md)
 - [REST API](docs/API.md)
-- [Problem-statement requirements matrix](docs/REQUIREMENTS_MATRIX.md)
-- [Security threat model and review log](docs/SECURITY.md)
-- [OWASP ASVS verification checklist](docs/ASVS_CHECKLIST.md)
+- [Security model](docs/SECURITY.md)
+- [OWASP ASVS checklist](docs/ASVS_CHECKLIST.md)
 - [Render and Neon deployment](docs/DEPLOYMENT.md)
-- [Video and evidence checklist](docs/DEMO_SCRIPT.md)
-- [Final submission checklist](docs/FINAL_SUBMISSION_CHECKLIST.md)
-
-## Security Summary
-
-Linkora targets OWASP ASVS 5.0 Level 1 and applicable OWASP Top 10:2025 risks.
-It uses bcrypt password hashing, database-backed revocable sessions, secure
-cookies, origin checks, strict validation, ownership-scoped database queries,
-rate limits, CSP/security headers, privacy-scoped analytics identifiers,
-bounded CSV parsing, dependency audits, CodeQL, and a deploy-time ZAP workflow.
-
-Security testing reduces known risk but is not a guarantee of absolute
-invulnerability. Critical and high findings block release.
-
-## Assumptions
-
-- Public statistics are private by default and contain aggregate data only.
-- Raw IP addresses are never retained.
-- Country analytics require a trusted edge to overwrite geolocation headers.
-- Custom aliases are immutable; destination URLs remain editable.
-- Timestamps are stored in UTC and displayed in the viewer's timezone.
-- Render cold starts are acceptable for the free live-demo deployment.
-
-## AI Workflow
-
-AI assistance was used for planning, implementation, test generation, security
-review, and documentation. Each module was inspected, tested, committed
-separately, and designed to be explainable during the interview.
-
-This project is a part of a hackathon run by https://katomaran.com
