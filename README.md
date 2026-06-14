@@ -6,7 +6,7 @@ public reports, editable destinations, and idempotent CSV imports.
 
 ## Live Demo And Video
 
-- **Live application:** Add the final Render URL here.
+- **Live application:** https://linkora-i208.onrender.com
 - **Loom/YouTube walkthrough:** Required before submission. Add the public URL
   here.
 
